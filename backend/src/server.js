@@ -1,18 +1,25 @@
 import express from "express";
 import dotenv from "dotenv";
+import path from "path";
+
+
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
-import path from "path";
+import { connectDB } from "./lib/db.js";
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 
+
 const app = express();
 const __dirname = path.resolve();
 
+app.use(express.json()); // req.body parser
+app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
+
 
 // make it for production ready
 if (process.env.NODE_ENV === "production") {
@@ -24,4 +31,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 
-app.listen(PORT, () => console.log("app is listening: " + PORT));
+app.listen(PORT, () => {
+    console.log("app is listening: " + PORT);
+    connectDB(process.env.MONGO_URI);
+});
