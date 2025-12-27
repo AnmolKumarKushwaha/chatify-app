@@ -1,11 +1,9 @@
 import mongoose from "mongoose";
-import dotenv from "dotenv";
-
-dotenv.config();
+import { ENV } from "./env.js";
 
 export const connectDB = async (MONGO_URI) => {
   try {
-    const {MONGO_URI} = process.env;
+    const {MONGO_URI} = ENV;
     if (!MONGO_URI) {
       throw new Error("MONGO_URI is not defined in environment variables");
     } 
