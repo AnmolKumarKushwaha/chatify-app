@@ -6,7 +6,7 @@ import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import { Navigate, Routes, Route } from 'react-router';
 import { useAuthStore } from './store/useAuthStore.js';
-import PageLoader from './components/PageLoader.jsx';
+import PageLoader from './components/PageLoader';
 import { Toaster } from 'react-hot-toast';
 
 function App() {
