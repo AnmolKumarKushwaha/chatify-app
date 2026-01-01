@@ -7,15 +7,14 @@ import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import { connectDB } from "./lib/db.js";
-
+import {app, server} from "./lib/socket.js";
 
 const PORT = ENV.PORT || 3000;
 
 
-const app = express();
 const __dirname = path.resolve();
 
-app.use(express.json()); // req.body parser
+app.use(express.json({limit: "15mb"})); // req.body parser
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({origin: ENV.CLIENT_URL, credentials: true}));
 app.use(cookieParser());
@@ -34,7 +33,7 @@ if (ENV.NODE_ENV === "production") {
 }
 
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log("app is listening: " + PORT);
     connectDB(process.env.MONGO_URI);
 });

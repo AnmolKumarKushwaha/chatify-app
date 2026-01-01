@@ -1,6 +1,7 @@
 import Message from "../models/Message.js";
 import User from "../models/User.js";
 import cloudinary from "../lib/cloudinary.js";
+import { io, getReceiverSocketId } from "../lib/socket.js";
 
 export const getAllContacts = async (req, res) => {
   try {
@@ -16,30 +17,32 @@ export const getAllContacts = async (req, res) => {
 export const getMessagesByUserId = async (req, res) => {
   try {
     const myId = req.user._id;
-    const otherUserId = req.params.id;  
+    const otherUserId = req.params.id;
+
     const messages = await Message.find({
       $or: [
-        { sender: myId, receiver: otherUserId },
-        { sender: otherUserId, receiver: myId }
+        { senderId: myId, receiverId: otherUserId },
+        { senderId: otherUserId, receiverId: myId }
       ]
-    }).sort({ createdAt: 1 });  
+    }).sort({ createdAt: 1 });
 
-    res.status(200).json(messages);
-  } catch (error) {     
-    res.status(500).json({ message: "Server Error", error: error.message });
-    }
+    return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ message: "Server Error", error: error.message });
+  }
 };
+
 
 export const sendMessage = async (req, res) => {
   try {
-    const senderId = req.user._id; 
-    const receiverId = req.params.id; 
+    const senderId = req.user._id.toString(); 
+    const receiverId = req.params.id.toString(); 
     const { text, image } = req.body;
 
     if (!text && !image) {
       return res.status(400).json({ message: "Message content cannot be empty." });
     }
-    if(senderId.equals(receiverId)){
+    if(senderId === receiverId){
       return res.status(400).json({ message: "You cannot send messages to yourself." });
     }
     const receiverExists = await User.findById({_id: receiverId});
@@ -62,7 +65,10 @@ export const sendMessage = async (req, res) => {
     await newMessage.save();
 
     // todo: send the created message as response in real-time using socket.io;
-
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", newMessage);
+    }
     res.status(201).json(newMessage);
 
   }  catch (error) {
